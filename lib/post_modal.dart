@@ -1,21 +1,20 @@
 import 'package:flutter/foundation.dart';
 
 class Post {
-  final String feedid;
-  final dynamic data;
+  final double timeStamp;
+  final double data;
 
 
   Post({
-    @required this.feedid,
+    @required this.timeStamp,
     @required this.data,
 
   });
 
-  factory Post.fromJson(Map<String, dynamic> json) {
+  assign(body) {
     return Post(
-      feedid: json['feedid'] as String,
-      data: json['data'] as dynamic,
-      
+      timeStamp: body[0] as double,
+      data: body[1] as double,
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:minsaar/posts.dart';
+import 'package:minsaar/chart_page.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: PostsPage(),
+      home: ChartPage(),
     );
   }
 }

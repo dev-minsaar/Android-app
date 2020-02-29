@@ -1,6 +1,5 @@
 import 'package:minsaar/http_service.dart';
 import 'package:minsaar/post_detail.dart';
-import 'package:minsaar/post_modal.dart';
 import 'package:flutter/material.dart';
 
 class PostsPage extends StatelessWidget {
@@ -14,13 +13,13 @@ class PostsPage extends StatelessWidget {
       ),
       body: FutureBuilder(
         future: httpService.getPosts(),
-        builder: (BuildContext context, AsyncSnapshot<List<Post>> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
           if (snapshot.hasData) {
-            List<Post> posts = snapshot.data;
+            List<dynamic> posts = snapshot.data;
             return ListView(
               children: posts
                   .map(
-                    (Post post) => ListTile(
+                    (dynamic post) => ListTile(
                       title: Text("Feed"),
                       subtitle: Text("Details:"),
                       onTap: () => Navigator.of(context).push(

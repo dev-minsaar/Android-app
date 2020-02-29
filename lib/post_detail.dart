@@ -1,9 +1,8 @@
 
-import 'package:minsaar/post_modal.dart';
 import 'package:flutter/material.dart';
 
 class PostDetail extends StatelessWidget {
-  final Post post;
+  final dynamic post;
 
   PostDetail({@required this.post});
 
@@ -28,11 +27,11 @@ class PostDetail extends StatelessWidget {
                       ),
                       ListTile(
                         title: Text("FEEDID"),
-                        subtitle: Text("${post.feedid}"),
+                        subtitle: Text("${post[0]}"),
                       ),
                       ListTile(
                         title: Text("Data"),
-                        subtitle: Text("${post.data}"),
+                        subtitle: Text("${post[1]}"),
                       ),
                     ],
                   ),
