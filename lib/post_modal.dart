@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class Post {
-  final double timeStamp;
+  final DateTime timeStamp;
   final double data;
 
 
@@ -13,7 +13,7 @@ class Post {
 
   assign(body) {
     return Post(
-      timeStamp: body[0] as double,
+      timeStamp: body[0] as DateTime,
       data: body[1] as double,
     );
   }

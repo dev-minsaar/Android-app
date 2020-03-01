@@ -1,58 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:minsaar/feed_list.dart';
 import 'package:minsaar/http_service.dart';
 import 'package:minsaar/post_modal.dart';
 
 class ChartPage extends StatefulWidget {
-  final Widget child;
+  final FeedList feed;
 
-  ChartPage({Key key, this.child}) : super(key: key);
+  ChartPage({this.feed});
 
-  _ChartPageState createState() => _ChartPageState();
+  _ChartPageState createState() => _ChartPageState(feed);
 }
 
 class _ChartPageState extends State<ChartPage> {
-  List<charts.Series<Post, double>> _seriesLineData;
-    List<charts.Series<Sales, int>> _seriesLineDataStatic;
+  List<charts.Series<Post, DateTime>> _seriesLineDataDay;
+  List<charts.Series<Post, DateTime>> _seriesLineDataMonth;
+  List<charts.Series<Post, DateTime>> _seriesLineDataYear;
+  FeedList feed;
+  DateTime start;
+  DateTime end;
+  _ChartPageState(this.feed);
 
   _generateData() async {
-   
-    var linesalesdataStatic = [
-      new Sales(0, 45),
-      new Sales(1, 56),
-      new Sales(2, 55),
-      new Sales(3, 60),
-      new Sales(4, 61),
-      new Sales(5, 70),
-    ];
-    
     // get data from emomcms
-    // var linesalesdata =await HttpService().getPosts();
-    var linesalesdata = [
-      new Post(timeStamp: 0.00, data: 10.00),
-      new Post(timeStamp: 2.00, data: 15.00),
-      new Post(timeStamp: 4.00, data: 20.00),
-      new Post(timeStamp: 1.00, data: 8.00),
-      new Post(timeStamp: 3.00, data: 5.00)
-    ];
+    end = new DateTime.now();
+    start = end.subtract(new Duration(days: 1));
+    var linesalesdataDay = await HttpService().getPosts(feed.feedId,
+        start.millisecondsSinceEpoch, end.millisecondsSinceEpoch, 120);
+    start = end.subtract(new Duration(days: 30));
+    var linesalesdataMonth = await HttpService().getPosts(feed.feedId,
+        start.millisecondsSinceEpoch, end.millisecondsSinceEpoch, 3600);
+    start = end.subtract(new Duration(days: 365));
+    var linesalesdataYear = await HttpService().getPosts(feed.feedId,
+        start.millisecondsSinceEpoch, end.millisecondsSinceEpoch, 43200);
 
-    _seriesLineData.add(
+    _seriesLineDataDay.add(
       charts.Series(
         colorFn: (__, _) => charts.ColorUtil.fromDartColor(Color(0xff990099)),
-        id: 'Air Pollution',
-        data: linesalesdata,
+        id: 'Day',
+        data: linesalesdataDay,
         domainFn: (Post post, _) => post.timeStamp,
         measureFn: (Post post, _) => post.data,
       ),
     );
-     _seriesLineDataStatic.add(
+    _seriesLineDataMonth.add(
       charts.Series(
         colorFn: (__, _) => charts.ColorUtil.fromDartColor(Color(0xff990099)),
-        id: 'Air Pollution',
-        data: linesalesdataStatic,
-        domainFn: (Sales sales, _) => sales.yearval,
-        measureFn: (Sales sales, _) => sales.salesval,
+        id: 'Month',
+        data: linesalesdataMonth,
+        domainFn: (Post post, _) => post.timeStamp,
+        measureFn: (Post post, _) => post.data,
+      ),
+    );
+    _seriesLineDataYear.add(
+      charts.Series(
+        colorFn: (__, _) => charts.ColorUtil.fromDartColor(Color(0xff990099)),
+        id: 'Year',
+        data: linesalesdataYear,
+        domainFn: (Post post, _) => post.timeStamp,
+        measureFn: (Post post, _) => post.data,
       ),
     );
   }
@@ -60,7 +67,10 @@ class _ChartPageState extends State<ChartPage> {
   @override
   void initState() {
     super.initState();
-    _seriesLineData = List<charts.Series<Post, double>>();
+    _seriesLineDataDay = List<charts.Series<Post, DateTime>>();
+    _seriesLineDataMonth = List<charts.Series<Post, DateTime>>();
+    _seriesLineDataYear = List<charts.Series<Post, DateTime>>();
+
     _generateData();
   }
 
@@ -68,7 +78,7 @@ class _ChartPageState extends State<ChartPage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           appBar: AppBar(
             backgroundColor: Color(0xff1976d2),
@@ -76,11 +86,12 @@ class _ChartPageState extends State<ChartPage> {
             bottom: TabBar(
               indicatorColor: Color(0xff9962D0),
               tabs: [
-                Tab(icon: Icon(FontAwesomeIcons.chartPie)),
-                Tab(icon: Icon(FontAwesomeIcons.chartLine)),
+                Tab(text: "Day"),
+                Tab(text: "Month"),
+                Tab(text: "Year"),
               ],
             ),
-            title: Text('Flutter Charts'),
+            title: Text('Histographic Power Graph'),
           ),
           body: TabBarView(
             children: [
@@ -90,27 +101,30 @@ class _ChartPageState extends State<ChartPage> {
                   child: Center(
                     child: Column(
                       children: <Widget>[
-                        Text(
-                            'Sales for the first 5 years',style: TextStyle(fontSize: 24.0,fontWeight: FontWeight.bold),),
                         Expanded(
-                          child: charts.LineChart(
-                            _seriesLineDataStatic,
-                            defaultRenderer: new charts.LineRendererConfig(
-                                includeArea: true, stacked: true),
-                            animate: true,
-                            animationDuration: Duration(seconds: 5),
-                            behaviors: [
-        new charts.ChartTitle('Years',
-            behaviorPosition: charts.BehaviorPosition.bottom,
-            titleOutsideJustification:charts.OutsideJustification.middleDrawArea),
-        new charts.ChartTitle('Sales',
-            behaviorPosition: charts.BehaviorPosition.start,
-            titleOutsideJustification: charts.OutsideJustification.middleDrawArea),
-        new charts.ChartTitle('Departments',
-            behaviorPosition: charts.BehaviorPosition.end,
-            titleOutsideJustification:charts.OutsideJustification.middleDrawArea,
-            )
-              ]),
+                          child: charts.TimeSeriesChart(_seriesLineDataDay,
+                              defaultRenderer: new charts.LineRendererConfig(
+                                  includeArea: true, stacked: true),
+                              animate: true,
+                              animationDuration: Duration(seconds: 2),
+                              behaviors: [
+                                new charts.ChartTitle('Years',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.bottom,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle('Sales',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.start,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle(
+                                  'Departments',
+                                  behaviorPosition: charts.BehaviorPosition.end,
+                                  titleOutsideJustification: charts
+                                      .OutsideJustification.middleDrawArea,
+                                )
+                              ]),
                         ),
                       ],
                     ),
@@ -123,28 +137,66 @@ class _ChartPageState extends State<ChartPage> {
                   child: Center(
                     child: Column(
                       children: <Widget>[
-                        Text(
-                            'MY Chart',style: TextStyle(fontSize: 24.0,fontWeight: FontWeight.bold),),
                         Expanded(
-                          child: charts.LineChart(
-                            _seriesLineData,
-                            defaultRenderer: new charts.LineRendererConfig(
-                                includeArea: true, stacked: true),
-                            animate: true,
-                            animationDuration: Duration(seconds: 5),
-                            behaviors: [
-        new charts.ChartTitle('Time',
-            behaviorPosition: charts.BehaviorPosition.bottom,
-            titleOutsideJustification:charts.OutsideJustification.middleDrawArea),
-        new charts.ChartTitle('Power',
-            behaviorPosition: charts.BehaviorPosition.start,
-            titleOutsideJustification: charts.OutsideJustification.middleDrawArea),
-        new charts.ChartTitle('Power Consumption',
-            behaviorPosition: charts.BehaviorPosition.end,
-            titleOutsideJustification:charts.OutsideJustification.middleDrawArea,
-            )   
-      ]
-                          ),
+                          child: charts.TimeSeriesChart(_seriesLineDataMonth,
+                              defaultRenderer: new charts.LineRendererConfig(
+                                  includeArea: true, stacked: true),
+                              animate: true,
+                              animationDuration: Duration(seconds: 2),
+                              behaviors: [
+                                new charts.ChartTitle('Time',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.bottom,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle('Power',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.start,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle(
+                                  'Power Consumption',
+                                  behaviorPosition: charts.BehaviorPosition.end,
+                                  titleOutsideJustification: charts
+                                      .OutsideJustification.middleDrawArea,
+                                )
+                              ]),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Container(
+                  child: Center(
+                    child: Column(
+                      children: <Widget>[
+                        Expanded(
+                          child: charts.TimeSeriesChart(_seriesLineDataYear,
+                              defaultRenderer: new charts.LineRendererConfig(
+                                  includeArea: true, stacked: true),
+                              animate: true,
+                              animationDuration: Duration(seconds: 2),
+                              behaviors: [
+                                new charts.ChartTitle('Time',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.bottom,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle('Power',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.start,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle(
+                                  'Power Consumption',
+                                  behaviorPosition: charts.BehaviorPosition.end,
+                                  titleOutsideJustification: charts
+                                      .OutsideJustification.middleDrawArea,
+                                )
+                              ]),
                         ),
                       ],
                     ),
@@ -157,9 +209,4 @@ class _ChartPageState extends State<ChartPage> {
       ),
     );
   }
-}
-class Sales {
-  int yearval;
-  int salesval;
-  Sales(this.yearval, this.salesval);
 }
